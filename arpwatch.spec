@@ -3,12 +3,12 @@
 Name: arpwatch
 Epoch: 14
 Version: 2.1a15
-Release: 14%{?dist}
+Release: 16%{?dist}
 Summary: Network monitoring tools for tracking IP addresses on a network
 Group: Applications/System
 License: BSD with advertising
 URL: http://ee.lbl.gov/
-Requires(pre): shadow-utils 
+Requires(pre): shadow-utils
 Requires(post): /sbin/chkconfig
 Requires(preun): /sbin/chkconfig /sbin/service
 Requires(postun): /sbin/service
@@ -33,6 +33,8 @@ Patch7: arpwatch-scripts.patch
 Patch8: arpwatch-2.1a15-nolocalpcap.patch
 Patch9: arpwatch-2.1a15-bogon.patch
 Patch10: arpwatch-2.1a15-extraman.patch
+Patch11: arpwatch-promisc.patch
+Patch12: arpwatch-drop-fix.patch
 
 %description
 The arpwatch package contains arpwatch and arpsnmp.  Arpwatch and
@@ -57,6 +59,8 @@ network.
 %patch8 -p1 -b .nolocalpcap
 %patch9 -p1 -b .bogon
 %patch10 -p1 -b .extraman
+%patch11 -p1 -b .promisc
+%patch12 -p1 -b .dropfix
 
 %build
 %configure
@@ -132,7 +136,6 @@ fi
 :
 
 %files
-%defattr(-,root,root)
 %doc README CHANGES arpfetch
 %{_sbindir}/arpwatch
 %{_sbindir}/arpsnmp
@@ -141,12 +144,18 @@ fi
 %{_mandir}/man8/*.8*
 %{_initrddir}/arpwatch
 %config(noreplace) %{_sysconfdir}/sysconfig/arpwatch
-%defattr(-,arpwatch,arpwatch)
-%dir %{_vararpwatch}
-%verify(not md5 size mtime) %config(noreplace) %{_vararpwatch}/arp.dat
-%verify(not md5 size mtime) %config(noreplace) %{_vararpwatch}/ethercodes.dat
+%dir %attr(0755,arpwatch,arpwatch) %{_vararpwatch}
+%verify(not md5 size mtime) %config(noreplace) %attr(0644,arpwatch,arpwatch) %{_vararpwatch}/arp.dat
+%verify(not md5 size mtime) %config(noreplace) %attr(0644,arpwatch,arpwatch) %{_vararpwatch}/ethercodes.dat
 
 %changelog
+* Wed Dec 16 2015 Jan Synáček <jsynacek@redhat.com> - 14:2.1a15-16
+- fix default owners of %%doc files
+
+* Tue Dec 15 2015 Jan Synáček <jsynacek@redhat.com> - 14:2.1a15-15
+- add -p option that disables promiscuous mode (#1006479)
+- fix credentials dropping (#726759)
+
 * Tue Mar 30 2010 Miroslav Lichvar <mlichvar@redhat.com> 14:2.1a15-14
 - update ethercodes.dat
 - mark ethercodes.dat as noreplace
